@@ -7,7 +7,7 @@ module ThemesOnRails
         def theme(theme, options={})
           @_theme = theme
           @_theme_options = options
-          ThemeApplicator.apply_theme(self, theme, options)
+          ThemesOnRails::ActionController.apply_theme(self, theme, options)
         end
       end
     end
