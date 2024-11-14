@@ -5,7 +5,7 @@ https://github.com/chamnap/themes_on_rails
 
 ## Custom Fixes
 
-- Rails 7
+- Rails 8
 
 ## Original Authors
 

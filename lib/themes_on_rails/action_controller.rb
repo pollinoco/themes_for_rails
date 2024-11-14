@@ -24,17 +24,6 @@ module ThemesOnRails
           Liquid::Template.file_system = Liquid::Rails::FileSystem.new(theme_instance.theme_view_path) if defined?(Liquid::Rails)
         end
       end
-
-      private
-
-        def before_filter_method(options)
-          case Rails::VERSION::MAJOR
-          when 3
-            options.delete(:prepend) ? :prepend_before_filter : :before_filter
-          when 4, 5, 6, 7, 8
-            options.delete(:prepend) ? :prepend_before_action : :before_action
-          end
-        end
     end
 
     def initialize(controller, theme)
