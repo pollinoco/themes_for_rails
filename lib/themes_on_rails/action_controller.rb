@@ -4,7 +4,7 @@ module ThemesOnRails
 
     class << self
       def apply_theme(controller_class, theme, options={})
-        filter_method = before_filter_method(options)
+        filter_method = options.delete(:prepend) ? :prepend_before_action : :before_action
         options       = options.slice(:only, :except)
 
         controller_class.send(filter_method, options) do |controller|
@@ -31,7 +31,7 @@ module ThemesOnRails
           case Rails::VERSION::MAJOR
           when 3
             options.delete(:prepend) ? :prepend_before_filter : :before_filter
-          when 4, 5, 6, 7
+          when 4, 5, 6, 7, 8
             options.delete(:prepend) ? :prepend_before_action : :before_action
           end
         end
