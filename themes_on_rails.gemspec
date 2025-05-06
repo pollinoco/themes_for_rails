@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Chamnap Chhorn"]
   s.email       = ["chamnapchhorn@gmail.com"]
   s.homepage    = "https://github.com/chamnap/themes_on_rails"
-  s.summary     = "Adds multi themes support to your Rails 3/4/8 application"
-  s.description = "Adds multi themes support to your Rails 3/4/8 application"
+  s.summary     = "Adds multi themes support to your Rails 3/4/7/8 application"
+  s.description = "Adds multi themes support to your Rails 3/4/7/8 application"
   s.license     = "MIT"
 
   s.required_ruby_version     = '>= 3.0.0'

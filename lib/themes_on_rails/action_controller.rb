@@ -22,6 +22,14 @@ module ThemesOnRails
 
           # liquid file system
           Liquid::Template.file_system = Liquid::Rails::FileSystem.new(theme_instance.theme_view_path) if defined?(Liquid::Rails)
+          
+          # Rails 8 compatibilidad - lookups para path de vistas
+          if Rails.gem_version >= Gem::Version.new('8.0')
+            # Asegurar que el tema está en las rutas de búsqueda para las vistas
+            unless ActionView::LookupContext.fallbacks.any? { |fallback| fallback.include?(theme_instance.theme_view_path) }
+              ActionView::LookupContext.fallbacks << [theme_instance.theme_view_path]
+            end
+          end
         end
       end
     end
