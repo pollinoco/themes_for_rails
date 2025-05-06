@@ -1,0 +1,9 @@
+!!!
+%html
+  %head
+    %title <%= "#{theme_name.humanize}" %>
+    = stylesheet_link_tag    "<%= %Q{#{theme_name}/all} %>", media: "all"
+    = javascript_include_tag "<%= %Q{#{theme_name}/all} %>"
+    = csrf_meta_tags
+  %body
+    = yield
