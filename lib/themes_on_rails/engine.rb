@@ -64,7 +64,9 @@ module ThemesOnRails
           end
         elsif defined?(Sprockets)
           # Configuración adicional para Sprockets en Rails 8
-          app.config.assets.precompile.push(/(?:\/|\\|\A)all\.(css|js)$/)
+          # Usar una forma segura de añadir patrones de precompilación
+          app.config.assets.precompile.push("all.js", "all.css")
+          # Así evitamos el uso de start_with? con expresiones regulares
         end
       end
     end
