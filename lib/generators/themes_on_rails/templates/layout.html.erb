@@ -1,15 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= theme_name.humanize %></title>
-  <%%#= csrf_meta_tags %>
-  <%%#= csp_meta_tag %>
-  <%%= stylesheet_link_tag    "<%= %Q{#{theme_name}/all} %>", media: "all" %>
-  <%%= javascript_include_tag "<%= %Q{#{theme_name}/all} %>" %>
+  <title><%= theme_name.titleize %> Theme</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <%%= csrf_meta_tags %>
+  <%%= csp_meta_tag %>
+
+  <%%= stylesheet_link_tag "<%= theme_name %>", media: "all" %>
+  <%%= javascript_importmap_tags %>
 </head>
-<body>
+<body class="<%= theme_name %>-bg-primary">
+  <header class="<%= theme_name %>-py-4 <%= theme_name %>-bg-secondary">
+    <div class="<%= theme_name %>-container <%= theme_name %>-mx-auto <%= theme_name %>-px-4">
+      <h1 class="<%= theme_name %>-text-2xl <%= theme_name %>-font-bold"><%= theme_name.titleize %> Theme</h1>
+    </div>
+  </header>
 
-<%%= yield %>
+  <main class="<%= theme_name %>-container <%= theme_name %>-mx-auto <%= theme_name %>-px-4 <%= theme_name %>-py-8">
+    <%%= yield %>
+  </main>
 
+  <footer class="<%= theme_name %>-py-4 <%= theme_name %>-bg-secondary <%= theme_name %>-text-white">
+    <div class="<%= theme_name %>-container <%= theme_name %>-mx-auto <%= theme_name %>-px-4">
+      <p>&copy; <%%= Time.current.year %> - <%= theme_name.titleize %> Theme</p>
+    </div>
+  </footer>
+  
+  <%%= javascript_import_module_tag "<%= theme_name %>/all" %>
 </body>
 </html>

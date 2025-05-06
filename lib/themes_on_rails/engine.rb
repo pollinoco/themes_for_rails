@@ -25,6 +25,56 @@ module ThemesOnRails
         end
       end
     end
+    
+    # Compatibilidad con importmap-rails
+    initializer 'themes_on_rails.importmap', after: 'importmap' do |app|
+      if defined?(Importmap::Engine) && Rails.application.respond_to?(:importmap)
+        # Asegurar que los módulos de JavaScript de cada tema se registren en importmap
+        ThemesOnRails.all.each do |theme|
+          theme_js_dir = Rails.root.join("app/themes/#{theme}/assets/javascripts/#{theme}")
+          
+          if Dir.exist?(theme_js_dir)
+            # Registrar cada directorio de JavaScript del tema en importmap
+            # Usar el método pin_all_from si está disponible
+            if Rails.application.importmap.respond_to?(:pin_all_from)
+              Rails.application.importmap.pin_all_from(
+                "app/themes/#{theme}/assets/javascripts/#{theme}",
+                under: theme,
+                to: "themes/#{theme}"
+              )
+            else
+              # Forma manual de pinear archivos individuales si pin_all_from no está disponible
+              Dir.glob("#{theme_js_dir}/**/*.js").each do |js_file|
+                relative_path = Pathname.new(js_file).relative_path_from(theme_js_dir).to_s
+                module_name = "#{theme}/#{File.basename(relative_path, '.js')}"
+                file_path = "/assets/themes/#{theme}/#{relative_path}"
+                
+                begin
+                  Rails.application.importmap.pin(module_name, to: file_path)
+                rescue => e
+                  Rails.logger.warn("No se pudo registrar el módulo #{module_name}: #{e.message}")
+                end
+              end
+            end
+            
+            # Añadir hooks para que nuevos archivos JavaScript se registren automáticamente
+            if Rails.env.development?
+              theme_js_pattern = "app/themes/#{theme}/assets/javascripts/#{theme}/**/*.js"
+              
+              # En desarrollo, vigilar cambios en los archivos JavaScript
+              Rails.application.config.file_watcher.new([theme_js_pattern]).tap do |watcher|
+                app.reloaders << watcher
+                
+                # Configurar callback para recargar importmap cuando cambian los archivos
+                watcher.on_change do |files|
+                  Rails.application.importmap.cache_sweeper.execute_if_updated
+                end
+              end
+            end
+          end
+        end
+      end
+    end
 
     initializer 'themes_on_rails.precompile' do |app|
       themes_root = Pathname.new("#{Rails.root}/app/themes")
