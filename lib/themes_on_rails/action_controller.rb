@@ -3,34 +3,20 @@ module ThemesOnRails
     attr_reader :theme_name
 
     class << self
-      def apply_theme(controller_class, theme, options={})
+      def apply_theme(controller_class, theme, options = {})
         filter_method = options.delete(:prepend) ? :prepend_before_action : :before_action
-        options       = options.slice(:only, :except)
+        layout_options = options.slice(:only, :except)
 
-        controller_class.send(filter_method, options) do |controller|
+        controller_class.layout(->(controller) {
+          ThemesOnRails::ActionController.new(controller, theme).theme_name
+        }, layout_options)
 
-          # set layout
-          controller_class.layout Proc.new { |controller|
-            ThemesOnRails::ActionController.new(controller, theme).theme_name
-          }, options
-
-          # initialize
+        controller_class.send(filter_method, layout_options) do |controller|
           theme_instance = ThemesOnRails::ActionController.new(controller, theme)
-
-          # prepend view path
           controller.prepend_view_path theme_instance.theme_view_path
 
-          # liquid file system
-          Liquid::Template.file_system = Liquid::Rails::FileSystem.new(theme_instance.theme_view_path) if defined?(Liquid::Rails)
-          
-          # Rails 8 compatibilidad - asegurar que las vistas del tema se encuentren
-          if Rails.gem_version >= Gem::Version.new('7.0')
-            # Asegurar que las vistas del tema se encuentren en las rutas de búsqueda
-            # Usar prepend_view_path que es compatible con todas las versiones
-            theme_path = theme_instance.theme_view_path
-            unless controller.view_paths.map(&:to_s).include?(theme_path)
-              controller.prepend_view_path(theme_path)
-            end
+          if defined?(Liquid::Rails)
+            Liquid::Template.file_system = Liquid::Rails::FileSystem.new(theme_instance.theme_view_path)
           end
         end
       end

@@ -7,22 +7,22 @@ require "themes_on_rails/version"
 Gem::Specification.new do |s|
   s.name        = "themes_on_rails"
   s.version     = ThemesOnRails::VERSION
-  s.authors     = ["Chamnap Chhorn"]
-  s.email       = ["chamnapchhorn@gmail.com"]
-  s.homepage    = "https://github.com/chamnap/themes_on_rails"
-  s.summary     = "Adds multi themes support to your Rails 3/4/7/8 application"
-  s.description = "Adds multi themes support to your Rails 3/4/7/8 application"
+  s.authors     = ["Chamnap Chhorn", "Camilo Sánchez"]
+  s.email       = ["chamnapchhorn@gmail.com", "info@caxtor.co"]
+  s.homepage    = "https://github.com/pollinoco/themes_for_rails"
+  s.summary     = "Adds multi-theme support to Rails 6.1–8 applications"
+  s.description = "Adds multi-theme support to your Rails application: per-theme views, locales, and Sprockets 4 assets."
   s.license     = "MIT"
 
-  s.required_ruby_version     = '>= 3.0.0'
-  s.required_rubygems_version = '>= 2.0.0'
+  s.required_ruby_version     = ">= 3.0.0"
+  s.required_rubygems_version = ">= 2.0.0"
 
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["spec/**/*"]
   s.require_paths = ["lib"]
 
-  s.add_dependency "rails", ">= 3.2", "< 9.0"
-  s.add_dependency "importmap-rails", ">= 1.0"
+  s.add_dependency "rails", ">= 6.1", "< 9.0"
+  s.add_development_dependency "sprockets-rails"
   s.add_development_dependency "ammeter", "~> 1.1.2"
   s.add_development_dependency "bundler", "~> 2.0"
 end
