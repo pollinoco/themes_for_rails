@@ -1,10 +1,8 @@
 .bundle/
-log/*.log
 pkg/
+tmp/
 Gemfile.lock
 gemfiles/*.lock
-coverage/
-spec/dummy/db/*.sqlite3
-spec/dummy/log/*.log
-spec/dummy/tmp/
-spec/dummy/.sass-cache
+test/dummy/log/
+test/dummy/tmp/
+.DS_Store

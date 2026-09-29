@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "pathname"
 
 module ThemesOnRails
@@ -16,18 +18,8 @@ module ThemesOnRails
                           extra_entrypoints: ThemesOnRails.config.extra_entrypoints,
                           themes_path: ThemesOnRails.config.themes_path,
                           mode: ThemesOnRails.config.precompile_mode)
-        return [] if mode == :none
-
-        list = []
-        themes.each do |theme|
-          %w[js css].each do |ext|
-            next unless entrypoint_exist?(theme, ext, themes_path: themes_path)
-
-            list << "#{theme}/all.#{ext}"
-          end
-        end
-        list.concat(Array(extra_entrypoints))
-        list
+        list = entrypoints(precompiled_themes(themes, mode), themes_path)
+        (list + Array(extra_entrypoints)).uniq
       end
 
       def entrypoint_exist?(theme, ext, themes_path: ThemesOnRails.config.themes_path)
@@ -36,6 +28,26 @@ module ThemesOnRails
         source_exts = ext.to_s == "js" ? %w[js] : %w[css scss sass]
         source_exts.any? do |source_ext|
           root.join(theme, "assets", type, theme, "all.#{source_ext}").file?
+        end
+      end
+
+      private
+
+      def precompiled_themes(themes, mode)
+        case mode
+        when :entrypoints then themes
+        when :none        then []
+        when Array        then mode.map(&:to_s) & themes
+        else
+          raise ArgumentError, "precompile_mode must be :entrypoints, :none or an Array of themes; got #{mode.inspect}"
+        end
+      end
+
+      def entrypoints(themes, themes_path)
+        themes.flat_map do |theme|
+          %w[js css].filter_map do |ext|
+            "#{theme}/all.#{ext}" if entrypoint_exist?(theme, ext, themes_path: themes_path)
+          end
         end
       end
     end

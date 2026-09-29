@@ -1,28 +1,32 @@
-$:.push File.expand_path("../lib", __FILE__)
+# frozen_string_literal: true
 
-# Maintain your gem's version:
-require "themes_on_rails/version"
+require_relative "lib/themes_on_rails/version"
 
-# Describe your gem and declare its dependencies:
-Gem::Specification.new do |s|
-  s.name        = "themes_on_rails"
-  s.version     = ThemesOnRails::VERSION
-  s.authors     = ["Chamnap Chhorn", "Camilo Sánchez"]
-  s.email       = ["chamnapchhorn@gmail.com", "info@caxtor.co"]
-  s.homepage    = "https://github.com/pollinoco/themes_for_rails"
-  s.summary     = "Adds multi-theme support to Rails 6.1–8 applications"
-  s.description = "Adds multi-theme support to your Rails application: per-theme views, locales, and Sprockets 4 assets."
-  s.license     = "MIT"
+Gem::Specification.new do |spec|
+  spec.name        = "themes_on_rails"
+  spec.version     = ThemesOnRails::VERSION
+  spec.authors     = [ "Chamnap Chhorn", "Camilo Sánchez" ]
+  spec.email       = [ "chamnapchhorn@gmail.com", "info@caxtor.co" ]
+  spec.homepage    = "https://github.com/pollinoco/themes_for_rails"
+  spec.summary     = "Multi-theme support for Rails 7.1+ applications"
+  spec.description = "Per-controller themes for Rails: theme views and layouts, theme locales and " \
+                     "Sprockets entrypoints (<theme>/all.css, <theme>/all.js)."
+  spec.license     = "MIT"
 
-  s.required_ruby_version     = ">= 3.0.0"
-  s.required_rubygems_version = ">= 2.0.0"
+  spec.metadata = {
+    "homepage_uri" => spec.homepage,
+    "source_code_uri" => spec.homepage,
+    "changelog_uri" => "#{spec.homepage}/blob/main/CHANGELOG.md",
+    "bug_tracker_uri" => "#{spec.homepage}/issues",
+    "rubygems_mfa_required" => "true"
+  }
 
-  s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.md"]
-  s.test_files = Dir["spec/**/*"]
-  s.require_paths = ["lib"]
+  spec.required_ruby_version = ">= 3.2"
 
-  s.add_dependency "rails", ">= 6.1", "< 9.0"
-  s.add_development_dependency "sprockets-rails"
-  s.add_development_dependency "ammeter", "~> 1.1.2"
-  s.add_development_dependency "bundler", "~> 2.0"
+  spec.files = Dir["lib/**/*", "CHANGELOG.md", "MIT-LICENSE", "README.md"]
+  spec.require_paths = [ "lib" ]
+
+  spec.add_dependency "actionpack", ">= 7.1", "< 9"
+  spec.add_dependency "actionview", ">= 7.1", "< 9"
+  spec.add_dependency "railties",   ">= 7.1", "< 9"
 end

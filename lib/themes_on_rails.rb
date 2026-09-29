@@ -1,7 +1,11 @@
+# frozen_string_literal: true
+
+require "active_support"
+require "active_support/concern"
+require "active_support/core_ext/class/attribute"
+require "pathname"
 require "themes_on_rails/version"
 require "themes_on_rails/engine"
-require "active_support/concern"
-require "pathname"
 
 module ThemesOnRails
   autoload :ActionController,    "themes_on_rails/action_controller"
@@ -36,19 +40,29 @@ module ThemesOnRails
   end
 
   class Configuration
-    attr_accessor :precompile_mode, :extra_entrypoints
-    attr_reader :themes_path
+    attr_accessor :extra_entrypoints
+    attr_reader :themes_path, :precompile_mode
 
     def initialize
       @themes_path = default_themes_path
-      # :entrypoints = solo #{theme}/all.js y #{theme}/all.css si existen
-      # :none        = la gem no toca config.assets.precompile (el host usa manifest.js)
       @precompile_mode = :entrypoints
       @extra_entrypoints = []
     end
 
     def themes_path=(path)
       @themes_path = Pathname(path)
+    end
+
+    # :entrypoints -> #{theme}/all.js y #{theme}/all.css de todos los themes que los tengan
+    # :none        -> ningún entrypoint de theme
+    # %w[a b]      -> solo los entrypoints de esos themes
+    # `extra_entrypoints` se añade en los tres casos.
+    def precompile_mode=(mode)
+      unless %i[entrypoints none].include?(mode) || mode.is_a?(Array)
+        raise ArgumentError, "precompile_mode must be :entrypoints, :none or an Array of themes; got #{mode.inspect}"
+      end
+
+      @precompile_mode = mode
     end
 
     private

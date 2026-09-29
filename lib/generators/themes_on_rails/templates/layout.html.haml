@@ -2,8 +2,10 @@
 %html
   %head
     %title <%= theme_name.humanize %>
-    = stylesheet_link_tag "<%= theme_name %>/all", media: "all"
-    = javascript_include_tag "<%= theme_name %>/all"
+    %meta{ name: "viewport", content: "width=device-width,initial-scale=1" }
     = csrf_meta_tags
+    = csp_meta_tag
+    = stylesheet_link_tag "<%= theme_name %>/all", "data-turbo-track": "reload"
+    = javascript_include_tag "<%= theme_name %>/all", "data-turbo-track": "reload", defer: true
   %body
     = yield

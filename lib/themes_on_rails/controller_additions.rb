@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 module ThemesOnRails
   module ControllerAdditions
     extend ActiveSupport::Concern
 
     included do
-      class << self
-        def theme(theme, options={})
-          @_theme = theme
-          @_theme_options = options
-          ThemesOnRails::ActionController.apply_theme(self, theme, options)
-        end
+      class_attribute :_themes_on_rails_declarations, instance_accessor: false, instance_predicate: false, default: []
+    end
+
+    class_methods do
+      def theme(theme, options = {})
+        ThemesOnRails::ActionController.apply_theme(self, theme, options)
       end
     end
   end

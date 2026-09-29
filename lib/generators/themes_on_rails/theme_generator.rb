@@ -1,9 +1,11 @@
-require "fileutils"
+# frozen_string_literal: true
+
+require "rails/generators"
 
 module ThemesOnRails
   module Generators
     class ThemeGenerator < Rails::Generators::Base
-      source_root File.expand_path("../templates", __FILE__)
+      source_root File.expand_path("templates", __dir__)
       argument    :theme_name, type: :string
       desc        "Creates a new theme"
 
@@ -23,80 +25,46 @@ module ThemesOnRails
       end
 
       def copy_layout_file
-        template_engine = Rails.configuration.app_generators.rails[:template_engine]
-        if template_engine == :liquid
-          template "layout.html.liquid", "#{theme_views_layout}/#{theme_name}.liquid"
-        elsif template_engine == :haml
+        if Rails.configuration.app_generators.rails[:template_engine] == :haml
           template "layout.html.haml", "#{theme_views_layout}/#{theme_name}.html.haml"
         else
           template "layout.html.erb", "#{theme_views_layout}/#{theme_name}.html.erb"
         end
       end
 
-      def append_sprockets_manifest
-        manifest_path = File.join(destination_root, "app/assets/config/manifest.js")
-        return unless File.exist?(manifest_path)
+      def precompile_notice
+        mode = ThemesOnRails.config.precompile_mode
+        return if mode == :entrypoints || (mode.is_a?(Array) && mode.map(&:to_s).include?(theme_name))
 
-        content = File.read(manifest_path)
-        return if content.include?("//= link #{theme_name}/all.css")
-
-        File.open(manifest_path, "a") do |f|
-          f.puts "" unless content.end_with?("\n")
-          f.puts "//= link #{theme_name}/all.css"
-          f.puts "//= link #{theme_name}/all.js"
-        end
-      end
-
-      def create_tailwind_config
-        return unless defined?(Tailwindcss)
-
-        template_file = File.join(self.class.source_root, "tailwind.config.js")
-        return unless File.exist?(template_file)
-
-        template "tailwind.config.js", "#{theme_directory}/tailwind.config.js"
-      end
-
-      def compile_css
-        return unless defined?(Tailwindcss)
-        return unless File.exist?("#{theme_directory}/tailwind.config.js")
-
-        say "Compilando CSS para el tema #{theme_name}...", :green
-
-        theme_css_path = "#{theme_stylesheets_directory}/all.css"
-        theme_output_path = "app/assets/builds/#{theme_name}.css"
-
-        FileUtils.mkdir_p(File.join(destination_root, "app/assets/builds"))
-
-        system "tailwindcss", "-i", theme_css_path, "-o", File.join(destination_root, theme_output_path).to_s, "-c", "#{theme_directory}/tailwind.config.js"
-
-        say "CSS compilado en #{theme_output_path}", :green
+        say "precompile_mode is #{mode.inspect}: add \"#{theme_name}\" to it (or use extra_entrypoints) " \
+            "so #{theme_name}/all.css and #{theme_name}/all.js get precompiled.", :yellow
       end
 
       private
 
-        def theme_directory
-          "app/themes/#{theme_name}"
-        end
+      def theme_directory
+        "app/themes/#{theme_name}"
+      end
 
-        def theme_views_layout
-          "#{theme_directory}/views/layouts"
-        end
+      def theme_views_layout
+        "#{theme_directory}/views/layouts"
+      end
 
-        def theme_images_directory
-          "#{theme_directory}/assets/images/#{theme_name}"
-        end
+      def theme_images_directory
+        "#{theme_directory}/assets/images/#{theme_name}"
+      end
 
-        def theme_javascripts_directory
-          "#{theme_directory}/assets/javascripts/#{theme_name}"
-        end
+      def theme_javascripts_directory
+        "#{theme_directory}/assets/javascripts/#{theme_name}"
+      end
 
-        def theme_stylesheets_directory
-          "#{theme_directory}/assets/stylesheets/#{theme_name}"
-        end
+      def theme_stylesheets_directory
+        "#{theme_directory}/assets/stylesheets/#{theme_name}"
+      end
 
-        def theme_locales_directory
-          "#{theme_directory}/locales"
-        end
+      def theme_locales_directory
+        "#{theme_directory}/locales"
+      end
     end
   end
 end

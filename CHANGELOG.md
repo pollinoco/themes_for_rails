@@ -1,5 +1,25 @@
 # Overview
 
+## 2.0.0
+
+**Breaking:**
+
+* Ruby >= 3.2 y Rails >= 7.1. La gema depende de `actionpack`, `actionview` y `railties` en vez de `rails`.
+* Sin soporte de Liquid: se eliminan la integración con `liquid-rails` y la plantilla `layout.html.liquid` del generador.
+* Sin integración con importmap: se elimina el initializer que pineaba el JS de los themes.
+* El generador ya no añade `//= link` a `manifest.js` (con `:entrypoints` era redundante); avisa si `precompile_mode` deja fuera el theme.
+* `precompile_mode = :none` ya no ignora `extra_entrypoints`.
+
+**Mejoras:**
+
+* El theme se resuelve una sola vez por request: el `before_action` lo guarda y la lambda del layout lo reutiliza. Antes un `theme :metodo` ejecutaba el método dos veces.
+* Varias declaraciones `theme` con `only`/`except` en el mismo controlador; gana la última que aplica a la acción, también frente a las heredadas (la heredada ya no se resuelve).
+* `precompile_mode` acepta una lista de themes (`%w[extranet dashboard]`) y valida su valor.
+* Las vistas se buscan en `config.themes_path` (antes `app/themes` fijo).
+* `theme` ya no modifica el hash de opciones recibido.
+* `rails/generators` se carga solo desde el generador. `# frozen_string_literal: true` en todo `lib/`.
+* Suite nueva con minitest y un dummy mínimo de Rails; CI con Ruby 3.2–3.4 × Rails 7.1–8.1 y RuboCop (omakase).
+
 ## 1.3.0
 
 **Breaking:** ya no se precompilan todos los estáticos del theme. Solo se publican los entrypoints lógicos `#{theme}/all.css` y `#{theme}/all.js` (más `extra_entrypoints`). Las imágenes usadas solo desde ERB hay que linkearlas en el host (`//= link_tree` en `app/assets/config/manifest.js`).

@@ -1,102 +1,37 @@
 # ThemesOnRails
 
-Gema para añadir soporte de múltiples temas en aplicaciones Rails (vistas, locales y assets Sprockets).
+Temas por controlador para Rails 7.1+: vistas y layouts en `app/themes/<theme>/views`, locales en
+`app/themes/<theme>/locales` y entrypoints de Sprockets `<theme>/all.css` y `<theme>/all.js`.
 
-## Características
-
-- Layouts, vistas y locales por tema
-- Load path de Sprockets 4 para nombres lógicos `#{theme}/all.css` y `#{theme}/all.js`
-- API de controlador: `theme "x"`, `theme :metodo`, `theme -> { }`, opciones `:only`, `:except`, `:prepend`
-- Compatible con Rails 6.1–8 y Ruby >= 3.0
+Requiere Ruby >= 3.2 y Rails >= 7.1, < 9.
 
 ## Instalación
 
-Añade esta línea a tu Gemfile:
+```ruby
+gem "themes_on_rails", github: "pollinoco/themes_for_rails", branch: "main"
+```
+
+## Controladores
 
 ```ruby
-gem "themes_on_rails", git: "https://github.com/pollinoco/themes_for_rails.git"
-```
+theme "haven"                                  # fijo
+theme :resolve_theme                           # método del controlador (puede ser privado)
+theme ->(controller) { controller.store.slug } # Proc
+theme :load_store, prepend: true               # antes que los demás before_action
 
-Y luego ejecuta:
-
-```bash
-$ bundle install
-```
-
-## Uso
-
-### Generación de un tema
-
-```bash
-$ rails g themes_on_rails:theme nombre_del_tema
-```
-
-Esto crea:
-
-```
-app/themes/nombre_del_tema/
-  assets/
-    images/nombre_del_tema/
-    javascripts/nombre_del_tema/all.js
-    stylesheets/nombre_del_tema/all.css   # o all.scss
-  views/
-    layouts/nombre_del_tema.html.erb
-  locales/
-```
-
-En el layout del tema:
-
-```erb
-<%= stylesheet_link_tag "nombre_del_tema/all", media: "all" %>
-<%= javascript_include_tag "nombre_del_tema/all" %>
-```
-
-### Uso en controladores
-
-```ruby
-class HomeController < ApplicationController
-  theme "nombre_del_tema"
-
-  # Para acciones específicas
-  # theme "nombre_del_tema", only: [:index]
-  # theme "nombre_del_tema", except: [:index]
-
-  # Temas dinámicos
-  # theme :theme_resolver
-  # theme -> { current_store.theme_slug }
-
-  # def theme_resolver
-  #   current_user.theme
-  # end
+class OrdersController < ApplicationController
+  theme :resolve_theme, except: :invoice       # varias declaraciones con only/except
+  theme "print", only: :invoice
 end
 ```
 
-Si el tema no tiene una plantilla, Rails cae a `app/views`.
-
-## Assets (Sprockets 4)
-
-Esta gema **está pensada para Sprockets 4** (`sprockets-rails`, `dartsass-sprockets`).
-
-| Capa | Quién | Qué |
-|---|---|---|
-| Load path | gem | `app/themes/*/assets/{stylesheets,javascripts,images}` |
-| Qué publicar | gem (`:entrypoints`) + host `manifest.js` | `#{theme}/all.css`, `#{theme}/all.js`, extras |
-| Dependencias CSS | Sprockets | fonts/images vía `asset-url` / `font-url` / `image-url` |
-| Árboles extra (fotos de UI) | host `//= link_tree` | opcional |
-
-El logical path es `itook/all.css` porque el archivo vive en `assets/stylesheets/itook/all.scss`. **No** se publica el `.scss` como asset digerido. Fuentes e imágenes referenciadas desde SCSS las publica Sprockets como dependencias del CSS.
-
-Imágenes usadas solo desde ERB (`image_tag "lafloresta/logo.png"`): decláralas en el host con `//= link_tree` en `app/assets/config/manifest.js`. La gema no globea el árbol.
-
-Si el host ya tiene `//= link itook/all.css`, duplicar en `precompile` es idempotente.
-
-### Propshaft
-
-Propshaft solo sirve archivos estáticos ya compilados. **Esta gema no compila Sass bajo Propshaft.** Si tu app usa `@import`, `dartsass-sprockets` o entrypoints `theme/all.scss`, quédate en Sprockets.
-
-### importmap
-
-Opcional. No es dependencia de la gema ni el camino por defecto del generador. Si el host tiene `importmap-rails`, la gema puede pinear el JS del tema; los layouts reales pueden seguir usando `javascript_include_tag`.
+- El theme se resuelve **una vez por request**, en un `before_action`: se antepone
+  `<themes_path>/<theme>/views` a los view paths y el layout `<theme>` se toma de ahí. Si el theme es un método,
+  no hace falta declararlo además como `before_action`.
+- Si el theme no tiene una plantilla, Rails cae a `app/views`.
+- Con varias declaraciones gana la última que aplica a la acción, también frente a las heredadas. Las acciones
+  que no cubre ninguna se renderizan sin layout, igual que `layout ..., only:/except:`.
+- Si un `before_action` anterior renderiza, el layout resuelve el theme en ese momento.
 
 ## Configuración
 
@@ -104,26 +39,44 @@ Opcional. No es dependencia de la gema ni el camino por defecto del generador. S
 # config/initializers/themes_on_rails.rb
 ThemesOnRails.configure do |c|
   c.themes_path = Rails.root.join("app/themes")
-  c.precompile_mode = :entrypoints # o :none para vivir solo del manifest.js
-  c.extra_entrypoints = %w[lafloresta/booking.js itook/shop.js]
+  c.precompile_mode = :entrypoints
+  c.extra_entrypoints = %w[lafloresta/booking.js]
 end
 ```
 
-- `:entrypoints` (default): precompila `#{theme}/all.js` y `#{theme}/all.css` si existen, más `extra_entrypoints`.
-- `:none`: la gema no toca `config.assets.precompile`. El host declara todo en `manifest.js`.
+`precompile_mode` decide qué entrypoints de themes se añaden a `config.assets.precompile` (solo con Sprockets):
 
-## Versiones compatibles
+| Valor | Entrypoints |
+|---|---|
+| `:entrypoints` (default) | `<theme>/all.js` y `<theme>/all.css` de todos los themes que los tengan |
+| `%w[extranet dashboard]` | solo los de esos themes |
+| `:none` | ninguno |
 
-- Ruby: >= 3.0.0
-- Rails: >= 6.1, < 9.0
-- Sprockets 4: soportado
-- Propshaft: solo estáticos ya compilados (sin Sass)
-- importmap-rails: opcional, no requerido
+`extra_entrypoints` se añade siempre. Las imágenes usadas solo desde ERB se publican desde el host
+(`//= link_tree` en `app/assets/config/manifest.js`). La gema añade `app/themes/*/assets/{stylesheets,javascripts,images}`
+al load path de Sprockets. Con Propshaft solo se sirven archivos ya compilados.
 
-## Original Authors
+Los `*.yml` de `app/themes/*/locales/**` se cargan en el árbol global de I18n: usa un espacio de nombres por theme
+para evitar colisiones entre themes.
 
-* [Chamnap Chhorn](https://github.com/chamnap)
+## Generador
 
-## Licencia
+```bash
+bin/rails g themes_on_rails:theme shop
+```
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+Crea `app/themes/shop/` con layout (ERB o HAML), `all.css`, `all.js`, `images/` y `locales/`. Si `precompile_mode`
+no incluye el theme, lo avisa.
+
+## Desarrollo
+
+```bash
+bundle install
+bundle exec rake test                     # RAILS_VERSION=7.1 bundle exec rake test para otra versión
+bundle exec rubocop
+```
+
+## Autores
+
+Original de [Chamnap Chhorn](https://github.com/chamnap). Fork mantenido por [pollinoco](https://github.com/pollinoco).
+Licencia [MIT](MIT-LICENSE).
